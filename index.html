@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Marvel Snap Clone</title>
+    <style>
+        .game-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .location {
+            width: 100px;
+            height: 150px;
+            border: 1px solid black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .hand {
+            display: flex;
+            justify-content: center;
+        }
+        .card {
+            width: 80px;
+            height: 120px;
+            border: 1px solid black;
+            margin: 0 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .power {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-board">
+        <div class="location" id="location1">
+            Location 1
+            <div class="power" id="power1">Power: 0</div>
+        </div>
+        <div class="location" id="location2">
+            Location 2
+            <div class="power" id="power2">Power: 0</div>
+        </div>
+        <div class="location" id="location3">
+            Location 3
+            <div class="power" id="power3">Power: 0</div>
+        </div>
+    </div>
+    <div class="hand" id="hand"></div>
+    <button onclick="endTurn()">End Turn</button>
+    <script>
+        let deck = [
+            { name: "Hero 1", power: 1, cost: 1 },
+            { name: "Hero 2", power: 2, cost: 2 },
+            { name: "Hero 3", power: 3, cost: 3 },
+            { name: "Hero 4", power: 4, cost: 4 },
+            { name: "Hero 5", power: 5, cost: 5 },
+        ];
+
+        let hand = [];
+        let energy = 1;
+        let turn = 1;
+        let locationPowers = [0, 0, 0];
+
+        function initializeGame() {
+            for (let i = 0; i < 4; i++) {
+                drawCard();
+            }
+            updateHand();
+        }
+
+        function drawCard() {
+            if (deck.length > 0) {
+                let randomIndex = Math.floor(Math.random() * deck.length);
+                let card = deck.splice(randomIndex, 1)[0];
+                hand.push(card);
+            }
+        }
+
+        function updateHand() {
+            let handElement = document.getElementById('hand');
+            handElement.innerHTML = '';
+            hand.forEach((card, index) => {
+                let cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.innerHTML = `${card.name}<br>Power: ${card.power}<br>Cost: ${card.cost}`;
+                cardElement.onclick = () => playCard(index);
+                handElement.appendChild(cardElement);
+            });
+        }
+
+        function playCard(index) {
+            let card = hand[index];
+            if (card.cost <= energy) {
+                energy -= card.cost;
+                let locationId = prompt("Enter location number (1-3):");
+                let location = document.getElementById(`location${locationId}`);
+                location.innerHTML += `<br>${card.name} (${card.power})`;
+                hand.splice(index, 1);
+                updateHand();
+                updatePower(locationId, card.power);
+            } else {
+                alert("Not enough energy!");
+            }
+        }
+
+        function playCardAI() {
+            if (hand.length > 0) {
+                let randomCardIndex = Math.floor(Math.random() * hand.length);
+                let card = hand[randomCardIndex];
+                if (card.cost <= energy) {
+                    energy -= card.cost;
+                    let randomLocationId = Math.floor(Math.random() * 3) + 1;
+                    let location = document.getElementById(`location${randomLocationId}`);
+                    location.innerHTML += `<br>${card.name} (${card.power})`;
+                    hand.splice(randomCardIndex, 1);
+                    updateHand();
+                    updatePower(randomLocationId, card.power);
+                }
+            }
+        }
+
+        function updatePower(locationId, power) {
+            locationPowers[locationId - 1] += power;
+            document.getElementById(`power${locationId}`).innerText = `Power: ${locationPowers[locationId - 1]}`;
+        }
+
+        function endTurn() {
+            turn++;
+            energy = Math.min(turn, 10);
+            drawCard();
+            updateHand();
+            playCardAI(); // 在玩家结束回合时，AI 也进行回合
+            alert(`Turn ${turn}, Energy: ${energy}`);
+        }
+
+        initializeGame();
+    </script>
+</body>
+</html>
